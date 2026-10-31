@@ -1,0 +1,110 @@
+<!DOCTYPE html> 
+<html lang="pt-BR"> 
+
+<head> 
+    <meta charset="UTF-8" /> 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cadastro de Alunos</title> 
+    <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+    <div class="app">
+        <header class="topo">
+            <div>
+                <h1>Cadastro de Alunos</h1>
+                <p class="subtitulo">Cursos e alunos: um curso tem vários alunos (1:N)</p>
+            </div>
+            <button type="button" id="btn-novo" class="btn btn-primario">
+                + Novo aluno
+            </button>
+        </header>
+
+        <div id="msg" class="msg" hidden></div>
+      
+        <section class="painel">
+            <div class="painel-cabecalho">
+                <h2>Cursos</h2>
+                <form id="form-curso" class="form-linha"> 
+                    <input id="novo-curso" type="text" placeholder="Nome do novo curso" required />
+                    <button type="submit" class="btn btn-primario">Adicionar curso</button>
+                </form>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Curso</th>
+                        <th>Alunos</th>
+                        <th class="acoes">Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="tabela-cursos"> 
+                    <tr>
+                        <td colspan="3" class="vazio">Carregando...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section class="painel">
+            <div class="painel-cabecalho">
+                <h2>Alunos cadastrados</h2>
+                <div class="filtros">
+                    <select id="filtro-curso"> 
+                        <option value="">Todos os cursos</option> 
+                    </select>
+                    <button type="button" id="btn-atualizar" class="btn btn-secundario">Atualizar lista</button>
+                </div>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>RA</th>
+                        <th>Curso</th>
+                        <th class="acoes">Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="tabela-alunos">
+                    <tr>
+                        <td colspan="4" class="vazio">Carregando...</td>
+                    </tr>
+                </tbody>
+            </table>
+            <!-- Elementos necessários para o app.js gerir o status e a paginação -->
+            <p id="alunos-status" class="rolagem-status">Carregando...</p>
+            <div id="sentinela-alunos"></div>
+        </section>
+
+        <div id="modal" class="modal" hidden> 
+            <div class="modal-fundo" id="modal-fundo"></div>
+            <div class="modal-caixa" role="dialog" aria-modal="true">
+                <h2 id="modal-titulo">Novo aluno</h2>
+                <form id="form-aluno"> 
+                    <label>
+                        Nome
+                        <input id="nome" type="text" required autocomplete="off" />
+                    </label>
+                    <label>
+                        RA
+                        <input id="ra" type="text" required autocomplete="off" />
+                    </label>
+                    <label>
+                        Curso
+                        <select id="curso" required> 
+                            <option value="">Selecione um curso</option>
+                        </select>
+                    </label>
+                    <div class="modal-acoes">
+                        <button type="button" id="btn-cancelar" class="btn btn-secundario">Cancelar</button>
+                        <button type="submit" class="btn btn-primario">Salvar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>
