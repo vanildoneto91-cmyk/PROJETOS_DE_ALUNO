@@ -121,3 +121,25 @@ export async function excluirPorRa(ra) {
     if (error) throw error;
     return data;
 }
+export async function listarAlunosPaginado(inicio = 0, limite = 5, cursoId = null) {
+    let consulta = supabase
+        .from('aluno')
+        .select(COLUNAS_ALUNO, limite ? { count: 'exact' } : undefined);
+
+    if (cursoId) {
+        consulta = consulta.eq('curso_id', cursoId);
+    }
+
+    consulta = consulta.order(cursoId ? 'nome' : 'id', { ascending: true });
+
+    if (limite) {
+        consulta = consulta.range(inicio, inicio + limite - 1);
+    }
+
+    const { data, error, count } = await consulta;
+
+    if (error) throw error;
+    if (!limite) return data || [];
+
+    return { alunos: data || [], total: count ?? 0 };
+}

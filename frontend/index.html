@@ -1,10 +1,10 @@
-<!DOCTYPE html> 
-<html lang="pt-BR"> 
+<!DOCTYPE html>
+<html lang="pt-BR">
 
-<head> 
-    <meta charset="UTF-8" /> 
+<head>
+    <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Cadastro de Alunos</title> 
+    <title>Cadastro de Alunos</title>
     <link rel="stylesheet" href="style.css" />
 </head>
 
@@ -21,11 +21,11 @@
         </header>
 
         <div id="msg" class="msg" hidden></div>
-      
+
         <section class="painel">
             <div class="painel-cabecalho">
                 <h2>Cursos</h2>
-                <form id="form-curso" class="form-linha"> 
+                <form id="form-curso" class="form-linha">
                     <input id="novo-curso" type="text" placeholder="Nome do novo curso" required />
                     <button type="submit" class="btn btn-primario">Adicionar curso</button>
                 </form>
@@ -38,7 +38,7 @@
                         <th class="acoes">Ações</th>
                     </tr>
                 </thead>
-                <tbody id="tabela-cursos"> 
+                <tbody id="tabela-cursos">
                     <tr>
                         <td colspan="3" class="vazio">Carregando...</td>
                     </tr>
@@ -50,8 +50,8 @@
             <div class="painel-cabecalho">
                 <h2>Alunos cadastrados</h2>
                 <div class="filtros">
-                    <select id="filtro-curso"> 
-                        <option value="">Todos os cursos</option> 
+                    <select id="filtro-curso">
+                        <option value="">Todos os cursos</option>
                     </select>
                     <button type="button" id="btn-atualizar" class="btn btn-secundario">Atualizar lista</button>
                 </div>
@@ -71,16 +71,16 @@
                     </tr>
                 </tbody>
             </table>
-            <!-- Elementos necessários para o app.js gerir o status e a paginação -->
+            <!-- Elementos necessários para o app.js gerir o status e a paginação (apenas uma vez, logo após a tabela) -->
             <p id="alunos-status" class="rolagem-status">Carregando...</p>
-            <div id="sentinela-alunos"></div>
+            <div id="sentinela-alunos" aria-hidden="true"></div>
         </section>
 
-        <div id="modal" class="modal" hidden> 
+        <div id="modal" class="modal" hidden>
             <div class="modal-fundo" id="modal-fundo"></div>
             <div class="modal-caixa" role="dialog" aria-modal="true">
                 <h2 id="modal-titulo">Novo aluno</h2>
-                <form id="form-aluno"> 
+                <form id="form-aluno">
                     <label>
                         Nome
                         <input id="nome" type="text" required autocomplete="off" />
@@ -91,7 +91,7 @@
                     </label>
                     <label>
                         Curso
-                        <select id="curso" required> 
+                        <select id="curso" required>
                             <option value="">Selecione um curso</option>
                         </select>
                     </label>

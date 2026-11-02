@@ -11,7 +11,8 @@ import {
     listarAlunosDoCurso,
     buscarPorRa,
     atualizarAluno,
-    excluirPorRa
+    excluirPorRa,
+    listarAlunosPaginado // <--- 1. ADICIONAR ESTA IMPORTAÇÃO AQUI NO TOPO
 } from './supabase.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -28,6 +29,16 @@ app.use(express.static(path.join(__dirname, 'frontend')));
 // ===== ALUNOS =====
 app.get('/alunos', async (req, res) => {
     try {
+        const pagina = lerPagina(req.query);
+        if (pagina && pagina.erro) {
+            return res.status(400).json({ erro: pagina.erro });
+        }
+
+        if (pagina) {
+            const dados = await listarAlunosPaginado(pagina.inicio, pagina.limite);
+            return res.json({ ...dados, inicio: pagina.inicio, limite: pagina.limite });
+        }
+
         const dados = await listarAlunos();
         res.json(dados);
     } catch (e) {
@@ -115,6 +126,39 @@ app.delete('/cursos/:id', async (req, res) => {
         res.status(400).json({ erro: e.message });
     }
 });
+
+// 2. ADICIONAR A ROTA GET /cursos/:id/alunos COM PAGINAÇÃO:
+app.get('/cursos/:id/alunos', async (req, res) => {
+    try {
+        const pagina = lerPagina(req.query);
+        if (pagina && pagina.erro) {
+            return res.status(400).json({ erro: pagina.erro });
+        }
+
+        if (pagina) {
+            const dados = await listarAlunosPaginado(pagina.inicio, pagina.limite, req.params.id);
+            return res.json({ ...dados, inicio: pagina.inicio, limite: pagina.limite });
+        }
+
+        res.json(await listarAlunosDoCurso(req.params.id));
+    } catch (e) {
+        res.status(500).json({ erro: e.message });
+    }
+});
+
+function lerPagina(query) {
+    if (query.limite === undefined && query.inicio === undefined) return null;
+    const limite = Number(query.limite);
+    const inicio = Number(query.inicio);
+
+    if (!Number.isInteger(limite) || limite < 1 || limite > 100) {
+        return { erro: 'Informe limite entre 1 e 100' };
+    }
+    if (!Number.isInteger(inicio) || inicio < 0) {
+        return { erro: 'Início inválido' };
+    }
+    return { inicio, limite };
+}
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

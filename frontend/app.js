@@ -17,6 +17,7 @@ const sentinelaAlunos = document.getElementById('sentinela-alunos');
 let modo = 'criar';
 let raEditando = '';
 
+// Variáveis de estado para a paginação
 const ALUNOS_POR_PAGINA = 5;
 let alunosInicio = 0;
 let alunosTotal = 0;
@@ -221,6 +222,7 @@ async function listarAlunos(acrescentar = false) {
 
     const pedido = ++alunosPedido;
     const inicio = acrescentar ? alunosInicio : 0;
+    
     if (!acrescentar) {
         tabela.innerHTML = '';
         alunosInicio = 0;
@@ -232,9 +234,7 @@ async function listarAlunos(acrescentar = false) {
     try {
         const cursoId = filtroCurso.value;
         const base = cursoId ? `/cursos/${cursoId}/alunos` : '/alunos';
-        const url = `${base}?inicio=${inicio}&limite=${ALUNOS_POR_PAGINA}`;
-
-        const resposta = await fetch(url);
+        const resposta = await fetch(`${base}?inicio=${inicio}&limite=${ALUNOS_POR_PAGINA}`);
         const dados = await resposta.json();
 
         if (pedido !== alunosPedido) return;
@@ -246,14 +246,14 @@ async function listarAlunos(acrescentar = false) {
             return;
         }
 
-        const lista = Array.isArray(dados) ? dados : (dados.alunos || []);
-        const total = Array.isArray(dados) ? dados.length : (dados.total || 0);
+        const alunos = dados.alunos || [];
+        const total = dados.total || 0;
 
         if (!acrescentar) {
             tabela.innerHTML = '';
         }
 
-        if (!lista.length && !inicio) {
+        if (!alunos.length && !inicio) {
             tabela.innerHTML = '<tr><td colspan="4" class="vazio">Nenhum aluno encontrado.</td></tr>';
             alunosTemMais = false;
             alunosTotal = 0;
@@ -262,11 +262,11 @@ async function listarAlunos(acrescentar = false) {
             return;
         }
 
-        for (const aluno of lista) {
+        for (const aluno of alunos) {
             tabela.appendChild(linhaAluno(aluno));
         }
 
-        alunosInicio = inicio + lista.length;
+        alunosInicio = inicio + alunos.length;
         alunosTotal = total;
         alunosTemMais = alunosInicio < alunosTotal;
         alunosErro = false;
@@ -285,6 +285,16 @@ async function listarAlunos(acrescentar = false) {
     }
 }
 
+// Deteta quando o utilizador chega ao fim da página para carregar mais
+function pedirMaisSeVisivel() {
+    if (!alunosTemMais || alunosCarregando) return;
+    const topo = sentinelaAlunos.getBoundingClientRect().top;
+    if (topo < window.innerHeight + 160) {
+        listarAlunos(true);
+    }
+}
+
+// Atualiza a frase informativa no rodapé
 function atualizarStatus() {
     if (alunosCarregando && alunosInicio === 0) {
         alunosStatus.textContent = 'Carregando...';
@@ -305,19 +315,11 @@ function atualizarStatus() {
     }
 }
 
-function pedirMaisSeVisivel() {
-    if (!alunosTemMais || alunosCarregando) return;
-    const topo = sentinelaAlunos.getBoundingClientRect().top;
-    if (topo < window.innerHeight + 160) {
-        listarAlunos(true);
-    }
-}
-
 async function salvarAluno(evento) {
     evento.preventDefault();
     const nome = inputNome.value.trim();
     const ra = inputRa.value.trim();
-    const curso_id = parseInt(selectCurso.value, 10); // <-- Correção aplicada aqui
+    const curso_id = parseInt(selectCurso.value, 10);
 
     if (!nome || !ra || !curso_id || isNaN(curso_id)) {
         mostrarMsg('Preencha todos os campos obrigatórios e selecione um curso válido', 'erro');
