@@ -121,13 +121,18 @@ export async function excluirPorRa(ra) {
     if (error) throw error;
     return data;
 }
-export async function listarAlunosPaginado(inicio = 0, limite = 5, cursoId = null) {
+export async function listarAlunosPaginado(inicio = 0, limite = 5, cursoId = null, busca = '') {
     let consulta = supabase
         .from('aluno')
         .select(COLUNAS_ALUNO, limite ? { count: 'exact' } : undefined);
 
     if (cursoId) {
         consulta = consulta.eq('curso_id', cursoId);
+    }
+
+    // <-- ADICIONA ESTE BLOCO PARA FILTRAR POR NOME OU RA -->
+    if (busca) {
+        consulta = consulta.or(`nome.ilike.%${busca}%,ra.ilike.%${busca}%`);
     }
 
     consulta = consulta.order(cursoId ? 'nome' : 'id', { ascending: true });

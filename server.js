@@ -12,7 +12,7 @@ import {
     buscarPorRa,
     atualizarAluno,
     excluirPorRa,
-    listarAlunosPaginado // <--- 1. ADICIONAR ESTA IMPORTAÇÃO AQUI NO TOPO
+    listarAlunosPaginado
 } from './supabase.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -30,12 +30,15 @@ app.use(express.static(path.join(__dirname, 'frontend')));
 app.get('/alunos', async (req, res) => {
     try {
         const pagina = lerPagina(req.query);
+        const busca = req.query.busca || ''; // Captura o termo de busca da URL
+
         if (pagina && pagina.erro) {
             return res.status(400).json({ erro: pagina.erro });
         }
 
         if (pagina) {
-            const dados = await listarAlunosPaginado(pagina.inicio, pagina.limite);
+            // Passa a busca como 4º argumento (inicio, limite, cursoId, busca)
+            const dados = await listarAlunosPaginado(pagina.inicio, pagina.limite, null, busca);
             return res.json({ ...dados, inicio: pagina.inicio, limite: pagina.limite });
         }
 
@@ -97,7 +100,7 @@ app.delete('/alunos/:ra', async (req, res) => {
     }
 });
 
-// ===== CURSOS =====
+    
 app.get('/cursos', async (req, res) => {
     try {
         res.json(await listarCursos());
@@ -127,16 +130,19 @@ app.delete('/cursos/:id', async (req, res) => {
     }
 });
 
-// 2. ADICIONAR A ROTA GET /cursos/:id/alunos COM PAGINAÇÃO:
+
 app.get('/cursos/:id/alunos', async (req, res) => {
     try {
         const pagina = lerPagina(req.query);
+        const busca = req.query.busca || ''; // Captura o termo de busca da URL
+
         if (pagina && pagina.erro) {
             return res.status(400).json({ erro: pagina.erro });
         }
 
         if (pagina) {
-            const dados = await listarAlunosPaginado(pagina.inicio, pagina.limite, req.params.id);
+            // Passa o cursoId e a busca corretamente
+            const dados = await listarAlunosPaginado(pagina.inicio, pagina.limite, req.params.id, busca);
             return res.json({ ...dados, inicio: pagina.inicio, limite: pagina.limite });
         }
 

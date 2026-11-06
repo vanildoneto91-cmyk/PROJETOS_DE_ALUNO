@@ -13,11 +13,14 @@ const formCurso = document.getElementById('form-curso');
 const inputNovoCurso = document.getElementById('novo-curso');
 const alunosStatus = document.getElementById('alunos-status');
 const sentinelaAlunos = document.getElementById('sentinela-alunos');
+const formBusca = document.getElementById('form-busca');
+const inputBusca = document.getElementById('busca-aluno');
+const criterioPesquisa = document.getElementById('criterio-pesquisa');
 
 let modo = 'criar';
 let raEditando = '';
 
-// Variáveis de estado para a paginação
+// Variáveis de estado para a paginação e pesquisa
 const ALUNOS_POR_PAGINA = 5;
 let alunosInicio = 0;
 let alunosTotal = 0;
@@ -25,6 +28,7 @@ let alunosTemMais = false;
 let alunosCarregando = false;
 let alunosErro = false;
 let alunosPedido = 0;
+let alunosBusca = '';
 
 function mostrarMsg(texto, tipo = '') {
     msg.hidden = false;
@@ -222,7 +226,7 @@ async function listarAlunos(acrescentar = false) {
 
     const pedido = ++alunosPedido;
     const inicio = acrescentar ? alunosInicio : 0;
-    
+
     if (!acrescentar) {
         tabela.innerHTML = '';
         alunosInicio = 0;
@@ -234,7 +238,15 @@ async function listarAlunos(acrescentar = false) {
     try {
         const cursoId = filtroCurso.value;
         const base = cursoId ? `/cursos/${cursoId}/alunos` : '/alunos';
-        const resposta = await fetch(`${base}?inicio=${inicio}&limite=${ALUNOS_POR_PAGINA}`);
+        
+        // Constrói os parâmetros da query string incluindo a busca se existir[cite: 48]
+        const params = new URLSearchParams({
+            inicio: String(inicio),
+            limite: String(ALUNOS_POR_PAGINA),
+        });
+        if (alunosBusca) params.set('busca', alunosBusca);
+
+        const resposta = await fetch(`${base}?${params.toString()}`);
         const dados = await resposta.json();
 
         if (pedido !== alunosPedido) return;
@@ -377,6 +389,44 @@ async function excluirAluno(ra, nome) {
     }
 }
 
+// Funções para gerir a nuvem de critério e pesquisa
+function atualizarCriterioPesquisa() {
+    criterioPesquisa.innerHTML = '';
+    if (!alunosBusca) { 
+        criterioPesquisa.hidden = true; 
+        return; 
+    }
+    const rotulo = document.createElement('span');
+    rotulo.className = 'criterio-rotulo';
+    rotulo.textContent = 'Critério de pesquisa:';
+    
+    const nuvem = document.createElement('span');
+    nuvem.className = 'nuvem-filtro';
+    
+    const texto = document.createElement('span');
+    texto.className = 'nuvem-filtro-texto';
+    texto.textContent = alunosBusca;
+    
+    const btnLimpar = document.createElement('button');
+    btnLimpar.type = 'button';
+    btnLimpar.className = 'nuvem-filtro-limpar';
+    btnLimpar.textContent = '×';
+    btnLimpar.addEventListener('click', limparBusca);
+    
+    nuvem.appendChild(texto);
+    nuvem.appendChild(btnLimpar);
+    criterioPesquisa.appendChild(rotulo);
+    criterioPesquisa.appendChild(nuvem);
+    criterioPesquisa.hidden = false;
+}
+
+function limparBusca() {
+    inputBusca.value = '';
+    alunosBusca = '';
+    atualizarCriterioPesquisa(); // some a nuvem
+    listarAlunos(false); // lista de novo, sem o parâmetro ?busca=
+}
+
 async function atualizarTudo() {
     await listarCursos();
     await listarAlunos(false);
@@ -389,6 +439,12 @@ document.getElementById('btn-cancelar').addEventListener('click', fecharModal);
 modalFundo.addEventListener('click', fecharModal);
 form.addEventListener('submit', salvarAluno);
 formCurso.addEventListener('submit', adicionarCurso);
+formBusca.addEventListener('submit', (evento) => {
+    evento.preventDefault();
+    alunosBusca = inputBusca.value.trim();
+    atualizarCriterioPesquisa();
+    listarAlunos(false);
+});
 filtroCurso.addEventListener('change', () => listarAlunos(false));
 window.addEventListener('scroll', pedirMaisSeVisivel);
 window.addEventListener('resize', pedirMaisSeVisivel);

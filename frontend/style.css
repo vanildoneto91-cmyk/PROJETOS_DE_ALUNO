@@ -136,6 +136,23 @@ tbody tr:hover td {
     background: rgba(18, 28, 40, 0.45);
 }
 
+.nuvem-filtro {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.35rem 0.35rem 0.35rem 0.85rem;
+    border-radius: 999px;
+    /* cantos bem redondos = “nuvem” */
+    background: #e7f6ee;
+    color: var(--primary);
+}
+
+.nuvem-filtro-limpar {
+    width: 1.45rem;
+    height: 1.45rem;
+    border-radius: 999px;
+    /* botão × dentro da nuvem */
+}
+
 .modal-caixa {
     position: relative;
     width: min(420px, 100%);
