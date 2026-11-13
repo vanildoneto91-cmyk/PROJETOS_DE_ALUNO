@@ -15,12 +15,13 @@ const alunosStatus = document.getElementById('alunos-status');
 const sentinelaAlunos = document.getElementById('sentinela-alunos');
 const formBusca = document.getElementById('form-busca');
 const inputBusca = document.getElementById('busca-aluno');
-const criterioPesquisa = document.getElementById('criterio-pesquisa');
+const filtrosAtivos = document.getElementById('filtros-ativos');
+const btnTema = document.getElementById('btn-tema');
 
 let modo = 'criar';
 let raEditando = '';
 
-// Variáveis de estado para a paginação e pesquisa
+// Variáveis de estado para a paginação, pesquisa e ordenação
 const ALUNOS_POR_PAGINA = 5;
 let alunosInicio = 0;
 let alunosTotal = 0;
@@ -29,12 +30,45 @@ let alunosCarregando = false;
 let alunosErro = false;
 let alunosPedido = 0;
 let alunosBusca = '';
+let alunosOrdem = '';
+let alunosDirecao = 'asc';
 
 function mostrarMsg(texto, tipo = '') {
     msg.hidden = false;
     msg.textContent = texto;
     msg.className = 'msg ' + (tipo ? tipo : '');
 }
+
+// ===== TEMA ESCURO / CLARO =====
+function carregarTema() {
+    const temaSalvo = localStorage.getItem('tema') || 'light';
+    if (temaSalvo === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        if (btnTema) btnTema.textContent = '☀️';
+    } else {
+        document.documentElement.removeAttribute('data-theme');
+        if (btnTema) btnTema.textContent = '🌙';
+    }
+}
+
+function alternarTema() {
+    const ehEscuro = document.documentElement.getAttribute('data-theme') === 'dark';
+    if (ehEscuro) {
+        document.documentElement.removeAttribute('data-theme');
+        localStorage.setItem('tema', 'light');
+        if (btnTema) btnTema.textContent = '🌙';
+    } else {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        localStorage.setItem('tema', 'dark');
+        if (btnTema) btnTema.textContent = '☀️';
+    }
+}
+
+if (btnTema) {
+    btnTema.addEventListener('click', alternarTema);
+}
+
+carregarTema();
 
 // ===== CURSOS =====
 async function listarCursos() {
@@ -75,6 +109,7 @@ function montarTabelaCursos(cursos) {
         btnVer.className = 'btn btn-secundario btn-pequeno';
         btnVer.onclick = () => {
             filtroCurso.value = curso.id;
+            atualizarFiltrosAtivos();
             listarAlunos(false);
         };
 
@@ -110,6 +145,8 @@ function preencherSelects(cursos) {
 
     if (filtroCurso.selectedIndex === -1) filtroCurso.value = '';
     if (selectCurso.selectedIndex === -1) selectCurso.value = '';
+    
+    atualizarFiltrosAtivos();
 }
 
 async function adicionarCurso(evento) {
@@ -239,12 +276,15 @@ async function listarAlunos(acrescentar = false) {
         const cursoId = filtroCurso.value;
         const base = cursoId ? `/cursos/${cursoId}/alunos` : '/alunos';
         
-        // Constrói os parâmetros da query string incluindo a busca se existir[cite: 48]
         const params = new URLSearchParams({
             inicio: String(inicio),
             limite: String(ALUNOS_POR_PAGINA),
         });
         if (alunosBusca) params.set('busca', alunosBusca);
+        if (alunosOrdem) {
+            params.set('ordem', alunosOrdem);
+            params.set('direcao', alunosDirecao);
+        }
 
         const resposta = await fetch(`${base}?${params.toString()}`);
         const dados = await resposta.json();
@@ -297,16 +337,14 @@ async function listarAlunos(acrescentar = false) {
     }
 }
 
-// Deteta quando o utilizador chega ao fim da página para carregar mais
 function pedirMaisSeVisivel() {
     if (!alunosTemMais || alunosCarregando) return;
     const topo = sentinelaAlunos.getBoundingClientRect().top;
-    if (topo < window.innerHeight + 160) {
+    if (topo <= window.innerHeight + 160) {
         listarAlunos(true);
     }
 }
 
-// Atualiza a frase informativa no rodapé
 function atualizarStatus() {
     if (alunosCarregando && alunosInicio === 0) {
         alunosStatus.textContent = 'Carregando...';
@@ -321,7 +359,7 @@ function atualizarStatus() {
         return;
     }
     if (alunosTemMais) {
-        alunosStatus.textContent = `Mostrando ${alunosInicio} de ${alunosTotal}. Role a tela para carregar mais...`;
+        alunosStatus.textContent = `Mostrando ${alunosInicio} de ${alunosTotal}. Carregando mais...`;
     } else {
         alunosStatus.textContent = `Mostrando ${alunosTotal} de ${alunosTotal}. Fim da lista.`;
     }
@@ -389,42 +427,90 @@ async function excluirAluno(ra, nome) {
     }
 }
 
-// Funções para gerir a nuvem de critério e pesquisa
-function atualizarCriterioPesquisa() {
-    criterioPesquisa.innerHTML = '';
-    if (!alunosBusca) { 
-        criterioPesquisa.hidden = true; 
-        return; 
-    }
-    const rotulo = document.createElement('span');
-    rotulo.className = 'criterio-rotulo';
-    rotulo.textContent = 'Critério de pesquisa:';
-    
+// ===== NUVENS E FILTROS =====
+function nomeCursoDoFiltro() {
+    const opt = filtroCurso.options[filtroCurso.selectedIndex];
+    return opt ? opt.text : '';
+}
+
+function criarNuvemFiltro(texto, funcaoLimpar, tituloAria) {
     const nuvem = document.createElement('span');
     nuvem.className = 'nuvem-filtro';
-    
-    const texto = document.createElement('span');
-    texto.className = 'nuvem-filtro-texto';
-    texto.textContent = alunosBusca;
-    
-    const btnLimpar = document.createElement('button');
-    btnLimpar.type = 'button';
-    btnLimpar.className = 'nuvem-filtro-limpar';
-    btnLimpar.textContent = '×';
-    btnLimpar.addEventListener('click', limparBusca);
-    
-    nuvem.appendChild(texto);
-    nuvem.appendChild(btnLimpar);
-    criterioPesquisa.appendChild(rotulo);
-    criterioPesquisa.appendChild(nuvem);
-    criterioPesquisa.hidden = false;
+    nuvem.textContent = texto;
+
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'nuvem-filtro-limpar';
+    btn.textContent = '×';
+    btn.title = tituloAria;
+    btn.addEventListener('click', funcaoLimpar);
+
+    nuvem.appendChild(btn);
+    return nuvem;
+}
+
+function atualizarFiltrosAtivos() {
+    filtrosAtivos.innerHTML = '';
+    const temBusca = Boolean(alunosBusca);
+    const temCurso = Boolean(filtroCurso.value);
+
+    if (!temBusca && !temCurso) {
+        filtrosAtivos.hidden = true;
+        return;
+    }
+
+    if (temCurso) {
+        filtrosAtivos.appendChild(
+            criarNuvemFiltro(`Curso: ${nomeCursoDoFiltro()}`, limparFiltroCurso, 'Limpar filtro de curso')
+        );
+    }
+
+    if (temBusca) {
+        filtrosAtivos.appendChild(
+            criarNuvemFiltro(`Pesquisa: ${alunosBusca}`, limparBusca, 'Limpar pesquisa')
+        );
+    }
+
+    filtrosAtivos.hidden = false;
+}
+
+function limparFiltroCurso() {
+    filtroCurso.value = '';
+    atualizarFiltrosAtivos();
+    listarAlunos(false);
 }
 
 function limparBusca() {
     inputBusca.value = '';
     alunosBusca = '';
-    atualizarCriterioPesquisa(); // some a nuvem
-    listarAlunos(false); // lista de novo, sem o parâmetro ?busca=
+    atualizarFiltrosAtivos();
+    listarAlunos(false);
+}
+
+// ===== ORDENAÇÃO =====
+function ordenarPorColuna(coluna) {
+    if (alunosOrdem === coluna) {
+        alunosDirecao = alunosDirecao === 'asc' ? 'desc' : 'asc';
+    } else {
+        alunosOrdem = coluna;
+        alunosDirecao = 'asc';
+    }
+    atualizarCabecalhosOrdem();
+    listarAlunos(false);
+}
+
+function atualizarCabecalhosOrdem() {
+    document.querySelectorAll('.th-ordem').forEach(btn => {
+        const coluna = btn.getAttribute('data-ordem');
+        const spanSeta = btn.querySelector('.seta-ordem');
+        if (coluna === alunosOrdem) {
+            btn.classList.add('ativa');
+            spanSeta.textContent = alunosDirecao === 'asc' ? ' ↑' : ' ↓';
+        } else {
+            btn.classList.remove('ativa');
+            spanSeta.textContent = '';
+        }
+    });
 }
 
 async function atualizarTudo() {
@@ -439,14 +525,26 @@ document.getElementById('btn-cancelar').addEventListener('click', fecharModal);
 modalFundo.addEventListener('click', fecharModal);
 form.addEventListener('submit', salvarAluno);
 formCurso.addEventListener('submit', adicionarCurso);
+
 formBusca.addEventListener('submit', (evento) => {
     evento.preventDefault();
     alunosBusca = inputBusca.value.trim();
-    atualizarCriterioPesquisa();
+    atualizarFiltrosAtivos();
     listarAlunos(false);
 });
-filtroCurso.addEventListener('change', () => listarAlunos(false));
-window.addEventListener('scroll', pedirMaisSeVisivel);
+
+filtroCurso.addEventListener('change', () => {
+    atualizarFiltrosAtivos();
+    listarAlunos(false);
+});
+
+document.querySelectorAll('.th-ordem').forEach(btn => {
+    btn.addEventListener('click', () => {
+        ordenarPorColuna(btn.getAttribute('data-ordem'));
+    });
+});
+
+window.addEventListener('scroll', pedirMaisSeVisivel, { passive: true });
 window.addEventListener('resize', pedirMaisSeVisivel);
 
 // Arranque inicial

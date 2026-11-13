@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Cadastro de Alunos</title>
+    <title>Cadastro de Alunos - Grid Dinâmico</title>
     <link rel="stylesheet" href="style.css" />
 </head>
 
@@ -13,11 +13,16 @@
         <header class="topo">
             <div>
                 <h1>Cadastro de Alunos</h1>
-                <p class="subtitulo">Cursos e alunos: um curso tem vários alunos (1:N)</p>
+                <p class="subtitulo">Cursos e alunos: um curso tem vários alunos (1:N). A lista de alunos carrega ao rolar a tela.</p>
             </div>
-            <button type="button" id="btn-novo" class="btn btn-primario">
-                + Novo aluno
-            </button>
+            <div class="filtros">
+                <button type="button" id="btn-tema" class="btn btn-secundario" title="Alternar tema claro/escuro">
+                    🌙
+                </button>
+                <button type="button" id="btn-novo" class="btn btn-primario">
+                    + Novo aluno
+                </button>
+            </div>
         </header>
 
         <div id="msg" class="msg" hidden></div>
@@ -60,13 +65,25 @@
                 <input id="busca-aluno" type="search" placeholder="Pesquisar por nome ou RA" />
                 <button type="submit" class="btn btn-primario">Pesquisar</button>
             </form>
-            <div id="criterio-pesquisa" class="criterio-pesquisa" hidden></div>
+            <div id="filtros-ativos" class="filtros-ativos" hidden></div>
             <table>
                 <thead>
                     <tr>
-                        <th>Nome</th>
-                        <th>RA</th>
-                        <th>Curso</th>
+                        <th>
+                            <button type="button" class="th-ordem" data-ordem="nome" title="Ordenar por nome">
+                                Nome <span class="seta-ordem" aria-hidden="true"></span>
+                            </button>
+                        </th>
+                        <th>
+                            <button type="button" class="th-ordem" data-ordem="ra" title="Ordenar por RA">
+                                RA <span class="seta-ordem" aria-hidden="true"></span>
+                            </button>
+                        </th>
+                        <th>
+                            <button type="button" class="th-ordem" data-ordem="curso" title="Ordenar por curso">
+                                Curso <span class="seta-ordem" aria-hidden="true"></span>
+                            </button>
+                        </th>
                         <th class="acoes">Ações</th>
                     </tr>
                 </thead>
@@ -76,7 +93,6 @@
                     </tr>
                 </tbody>
             </table>
-            <!-- Elementos necessários para o app.js gerir o status e a paginação (apenas uma vez, logo após a tabela) -->
             <p id="alunos-status" class="rolagem-status">Carregando...</p>
             <div id="sentinela-alunos" aria-hidden="true"></div>
         </section>

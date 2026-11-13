@@ -8,6 +8,36 @@
     --danger: #b42318;
     --danger-soft: #f8d7da;
     --ok-soft: #ecfdf3;
+    --hover-tr: #f8fbfc;
+    --input-bg: #ffffff;
+    --disabled-bg: #f3f5f7;
+    --btn-bg: #ffffff;
+    --perigo-bg: #fdf2f2;
+    --nuvem-bg: #e7f6ee;
+    --modal-fundo: rgba(18, 28, 40, 0.45);
+    --gradient-top: #e7eef4;
+    --status-bg: #fafcfd;
+}
+
+[data-theme="dark"] {
+    --bg: #0f172a;
+    --surface: #1e293b;
+    --ink: #f1f5f9;
+    --muted: #94a3b8;
+    --line: #334155;
+    --primary: #14b8a6;
+    --danger: #ef4444;
+    --danger-soft: rgba(239, 68, 68, 0.15);
+    --ok-soft: rgba(20, 184, 166, 0.15);
+    --hover-tr: rgba(255, 255, 255, 0.03);
+    --input-bg: #0f172a;
+    --disabled-bg: #1e293b;
+    --btn-bg: #1e293b;
+    --perigo-bg: rgba(239, 68, 68, 0.15);
+    --nuvem-bg: rgba(20, 184, 166, 0.15);
+    --modal-fundo: rgba(0, 0, 0, 0.7);
+    --gradient-top: #1e293b;
+    --status-bg: #162032;
 }
 
 * {
@@ -19,7 +49,7 @@ body {
     min-height: 100vh;
     font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
     color: var(--ink);
-    background: linear-gradient(180deg, #e7eef4 0%, var(--bg) 40%);
+    background: linear-gradient(180deg, var(--gradient-top) 0%, var(--bg) 40%);
 }
 
 .app {
@@ -33,6 +63,12 @@ body {
     justify-content: space-between;
     align-items: flex-start;
     gap: 1rem;
+}
+
+.subtitulo {
+    color: var(--muted);
+    font-size: 0.95rem;
+    margin-top: 0.25rem;
 }
 
 .painel {
@@ -61,7 +97,7 @@ td.acoes {
 }
 
 tbody tr:hover td {
-    background: #f8fbfc;
+    background: var(--hover-tr);
 }
 
 .vazio {
@@ -74,7 +110,8 @@ tbody tr:hover td {
     border-radius: 8px;
     padding: 0.55rem 0.9rem;
     cursor: pointer;
-    background: #fff;
+    background: var(--btn-bg);
+    color: var(--ink);
     font-size: 0.9rem;
 }
 
@@ -85,12 +122,12 @@ tbody tr:hover td {
 }
 
 .btn-secundario {
-    background: #fff;
+    background: var(--btn-bg);
     color: var(--ink);
 }
 
 .btn-perigo {
-    background: #fdf2f2;
+    background: var(--perigo-bg);
     color: var(--danger);
     border-color: #fca5a5;
 }
@@ -133,30 +170,14 @@ tbody tr:hover td {
 .modal-fundo {
     position: absolute;
     inset: 0;
-    background: rgba(18, 28, 40, 0.45);
-}
-
-.nuvem-filtro {
-    display: inline-flex;
-    align-items: center;
-    padding: 0.35rem 0.35rem 0.35rem 0.85rem;
-    border-radius: 999px;
-    /* cantos bem redondos = “nuvem” */
-    background: #e7f6ee;
-    color: var(--primary);
-}
-
-.nuvem-filtro-limpar {
-    width: 1.45rem;
-    height: 1.45rem;
-    border-radius: 999px;
-    /* botão × dentro da nuvem */
+    background: var(--modal-fundo);
 }
 
 .modal-caixa {
     position: relative;
     width: min(420px, 100%);
     background: var(--surface);
+    color: var(--ink);
     border-radius: 12px;
     padding: 1.25rem;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
@@ -184,7 +205,8 @@ select {
     border: 1px solid var(--line);
     border-radius: 8px;
     padding: 0.65rem 0.75rem;
-    background: #fff;
+    background: var(--input-bg);
+    color: var(--ink);
     font-size: 0.95rem;
 }
 
@@ -195,7 +217,7 @@ select:focus {
 }
 
 input:disabled {
-    background: #f3f5f7;
+    background: var(--disabled-bg);
 }
 
 .modal-acoes {
@@ -219,10 +241,15 @@ input:disabled {
 }
 
 .form-linha,
-.filtros {
+.filtros,
+.busca-linha {
     display: flex;
     align-items: center;
     gap: 0.5rem;
+}
+
+.busca-linha {
+    padding: 0 1.25rem 1rem;
 }
 
 .form-linha input {
@@ -243,11 +270,64 @@ input:disabled {
     color: var(--muted);
     font-size: 0.9rem;
     border-top: 1px solid var(--line);
+    background: var(--status-bg);
     margin: 0;
 }
 
-@media (max-width: 640px) {
+.th-ordem {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--ink);
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
 
+.th-ordem.ativa {
+    color: var(--primary);
+}
+
+.filtros-ativos {
+    padding: 0.75rem 1.25rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+    border-bottom: 1px solid var(--line);
+    background: var(--hover-tr);
+}
+
+.nuvem-filtro {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.35rem 0.35rem 0.35rem 0.85rem;
+    border-radius: 999px;
+    background: var(--nuvem-bg);
+    color: var(--primary);
+    font-weight: 600;
+    font-size: 0.85rem;
+    gap: 0.5rem;
+}
+
+.nuvem-filtro-limpar {
+    width: 1.45rem;
+    height: 1.45rem;
+    border-radius: 999px;
+    border: none;
+    background: var(--primary);
+    color: #fff;
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    font-size: 0.9rem;
+}
+
+@media (max-width: 640px) {
     .topo,
     .painel-cabecalho {
         flex-direction: column;
