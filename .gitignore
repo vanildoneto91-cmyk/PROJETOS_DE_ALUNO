@@ -1,18 +1,12 @@
-# Variáveis de ambiente (credenciais sensíveis)
-.env
-.env.local
-*.env
-
-# Dependências
+# Dependências do Node.js (muito pesadas, são instaladas via npm install)
 node_modules/
 
-# Registos de erros e logs
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+# Variáveis de ambiente (contém chaves secretas, URLs e senhas do Supabase)
+.env
+.env.local
 
-# Ficheiros do sistema e do editor de código
+# Ficheiros de log e cache do sistema/editor
+*.log
+npm-debug.log*
 .DS_Store
 Thumbs.db
-.vscode/
-.idea/
